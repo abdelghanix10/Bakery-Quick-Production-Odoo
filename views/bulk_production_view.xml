@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- List View -->
+    <record id="view_bakery_production_list_tree" model="ir.ui.view">
+        <field name="name">bakery.production.list.tree</field>
+        <field name="model">bakery.production.list</field>
+        <field name="arch" type="xml">
+            <list string="Pending Production" editable="bottom" create="0" delete="0">
+                <header>
+                    <button name="action_produce_selected" string="Produce Selected" type="object" class="btn-primary"/>
+                </header>
+                <field name="mo_id"/>
+                <field name="product_id"/>
+                <field name="qty_producing"/>
+                <field name="state" widget="badge" decoration-info="state == 'confirmed'" decoration-warning="state == 'progress'"/>
+                <button name="action_produce_line" string="Done" type="object" icon="fa-check" class="btn-success" invisible="state == 'done'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Server Action to Populate and Open -->
+    <record id="action_open_bulk_production_v4" model="ir.actions.server">
+        <field name="name">Produce All</field>
+        <field name="model_id" ref="model_bakery_production_list"/>
+        <field name="state">code</field>
+        <field name="code">
+# Clear existing
+env['bakery.production.list'].search([]).unlink()
+
+# Find Pending MOs for Bakery Products
+# Filter: User's category or Bakery, Not Done, Not Cancelled
+# Filter: User's category or Bakery, Not Done, Not Cancelled
+user_category = env.user.production_category_id
+if user_category:
+    # Use child_of to include subcategories
+    categ_domain = ('product_id.categ_id', 'child_of', user_category.id)
+else:
+    # Fallback to Bakery
+    categ_domain = ('product_id.categ_id.complete_name', 'ilike', 'Bakery')
+
+domain = [
+    categ_domain,
+    ('state', 'not in', ['done', 'cancel'])
+]
+
+# If user is not a manager, only show their own MOs
+if not env.user.has_group('mrp.group_mrp_manager'):
+    domain.append(('user_id', '=', env.user.id))
+
+mos = env['mrp.production'].sudo().search(domain)
+
+# Create lines
+for mo in mos:
+    env['bakery.production.list'].create({
+        'mo_id': mo.id,
+        'qty_producing': mo.product_qty, # Default to full quantity
+    })
+
+# Return Action
+action = {
+    'type': 'ir.actions.act_window',
+    'name': 'Produce All',
+    'res_model': 'bakery.production.list',
+    'view_mode': 'list',
+    'view_id': env.ref('bakery_quick_production.view_bakery_production_list_tree').id,
+    'target': 'current',
+}
+        </field>
+    </record>
+
+    <!-- Menu Item (Next to Dashboard) -->
+    <menuitem id="menu_bakery_production_bulk"
+              name="Produce All"
+              parent="menu_bakery_production_root"
+              action="action_open_bulk_production_v4"
+              sequence="2"/>
+
+</odoo>

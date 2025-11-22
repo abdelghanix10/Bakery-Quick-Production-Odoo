@@ -28,25 +28,17 @@
 # Clear existing
 env['bakery.production.list'].search([]).unlink()
 
-# Find Pending MOs for Bakery Products
-# Filter: User's category or Bakery, Not Done, Not Cancelled
-# Filter: User's category or Bakery, Not Done, Not Cancelled
-user_category = env.user.production_category_id
-if user_category:
-    # Use child_of to include subcategories
-    categ_domain = ('product_id.categ_id', 'child_of', user_category.id)
+if env.user.has_group('base.group_system'):
+    domain = [('state', 'not in', ['done', 'cancel'])]
 else:
-    # Fallback to Bakery
-    categ_domain = ('product_id.categ_id.complete_name', 'ilike', 'Bakery')
-
-domain = [
-    categ_domain,
-    ('state', 'not in', ['done', 'cancel'])
-]
-
-# If user is not a manager, only show their own MOs
-if not env.user.has_group('mrp.group_mrp_manager'):
-    domain.append(('user_id', '=', env.user.id))
+    if not env.user.production_category_id:
+        domain = [('id', '=', False)]
+    else:
+        domain = [
+            ('state', 'not in', ['done', 'cancel']),
+            ('product_id.categ_id', 'child_of', env.user.production_category_id.id),
+            ('user_id', '=', env.user.id)
+        ]
 
 mos = env['mrp.production'].sudo().search(domain)
 

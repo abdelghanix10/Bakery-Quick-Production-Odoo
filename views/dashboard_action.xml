@@ -34,13 +34,13 @@
         <field name="res_model">product.product</field>
         <field name="view_mode">kanban</field>
         <field name="view_id" ref="view_product_bakery_kanban"/>
-        <field name="domain">[('categ_id.complete_name', 'ilike', 'Bakery')]</field>
+        <field name="domain">[]</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                No bakery products found.
+                No products found.
             </p>
             <p>
-                Ensure you have products with category "Bakery" and "Can be Manufactured" checked.
+                Contact your system administrator to add products.
             </p>
         </field>
     </record>
@@ -51,6 +51,7 @@
         <field name="state">code</field>
         <field name="code">
 action = env.ref('bakery_quick_production.action_bakery_production_dashboard_window').sudo().read()[0]
+action.pop('id', None)
 if env.user.has_group('base.group_system'):
     action['domain'] = []
 elif env.user.production_category_id:

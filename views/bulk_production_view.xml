@@ -14,9 +14,9 @@
                 <field name="product_id"/>
                 <field name="qty_producing" string="Quantity"/>
                 <field name="qty_total_str" string=" "/>
-                <button name="action_edit_qty" string="Edit" type="object" icon="fa-pencil" class="btn-secondary"/>
+                <button name="action_edit_qty" string="Edit" type="object" icon="fa-pencil" class="btn-secondary" invisible="state in ('done', 'cancel')"/>
                 <field name="state" widget="badge" decoration-info="state == 'confirmed'" decoration-warning="state == 'progress'"/>
-                <button name="action_produce_line" string="Done" type="object" icon="fa-check" class="btn-success" invisible="state == 'done'"/>
+                <button name="action_produce_line" string="Done" type="object" icon="fa-check" class="btn-success" invisible="state in ('done', 'cancel')"/>
             </list>
         </field>
     </record>

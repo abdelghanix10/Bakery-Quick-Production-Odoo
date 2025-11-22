@@ -1,5 +1,5 @@
 from odoo import models, fields, api, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 
 class BakeryProductionList(models.TransientModel):
     _name = 'bakery.production.list'
@@ -17,6 +17,13 @@ class BakeryProductionList(models.TransientModel):
     def _compute_qty_total_str(self):
         for record in self:
             record.qty_total_str = f"/ {record.qty_total:.2f}"
+    
+    @api.constrains('qty_producing', 'qty_total')
+    def _check_qty_producing_limit(self):
+        for record in self:
+            if record.qty_producing > record.qty_total:
+                raise ValidationError(_("Quantity to produce (%.2f) cannot be greater than the planned quantity (%.2f).") % (record.qty_producing, record.qty_total))
+
     
     def action_edit_qty(self):
         self.ensure_one()
@@ -39,6 +46,9 @@ class BakeryProductionList(models.TransientModel):
         if self.qty_producing <= 0:
             raise UserError(_("Quantity must be positive."))
         
+        if self.qty_producing > self.qty_total:
+            raise UserError(_("Quantity to produce (%.2f) cannot be greater than the planned quantity (%.2f).") % (self.qty_producing, self.qty_total))
+        
         self._complete_mo(self.mo_id, self.qty_producing)
         
         # Return reload to update the list (remove done items)
@@ -52,6 +62,8 @@ class BakeryProductionList(models.TransientModel):
         produced_count = 0
         for record in self:
             if record.qty_producing > 0:
+                if record.qty_producing > record.qty_total:
+                    raise UserError(_("Quantity to produce (%.2f) cannot be greater than the planned quantity (%.2f) for product %s.") % (record.qty_producing, record.qty_total, record.product_id.display_name))
                 record._complete_mo(record.mo_id, record.qty_producing)
                 produced_count += 1
         

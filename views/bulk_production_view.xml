@@ -12,7 +12,8 @@
                 </header>
                 <field name="mo_id"/>
                 <field name="product_id"/>
-                <field name="qty_producing"/>
+                <field name="qty_producing" string="Quantity"/>
+                <field name="qty_total_str" string=" "/>
                 <field name="state" widget="badge" decoration-info="state == 'confirmed'" decoration-warning="state == 'progress'"/>
                 <button name="action_produce_line" string="Done" type="object" icon="fa-check" class="btn-success" invisible="state == 'done'"/>
             </list>
@@ -46,7 +47,7 @@ mos = env['mrp.production'].sudo().search(domain)
 for mo in mos:
     env['bakery.production.list'].create({
         'mo_id': mo.id,
-        'qty_producing': mo.product_qty, # Default to full quantity
+        'qty_producing': mo.qty_producing,
     })
 
 # Return Action

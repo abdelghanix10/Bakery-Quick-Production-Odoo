@@ -10,6 +10,14 @@ class BakeryProductionList(models.TransientModel):
     qty_producing = fields.Float(string='Quantity', default=0.0)
     state = fields.Selection(related='mo_id.state', string='State', readonly=True)
     
+    qty_total = fields.Float(related='mo_id.product_qty', string='Total To Produce', readonly=True)
+    qty_total_str = fields.Char(string='Total Label', compute='_compute_qty_total_str')
+
+    @api.depends('qty_total')
+    def _compute_qty_total_str(self):
+        for record in self:
+            record.qty_total_str = f"/ {record.qty_total:.2f}"
+    
     def action_produce_line(self):
         """ Produces the single line (Completes the MO). """
         self.ensure_one()

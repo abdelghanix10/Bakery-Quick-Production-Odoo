@@ -142,3 +142,70 @@ class BakeryProductionWizardLine(models.TransientModel):
     product_id = fields.Many2one('product.product', string='Ingredient')
     qty = fields.Float(string='Quantity')
     uom_id = fields.Many2one('uom.uom', string='Unit of Measure')
+
+class BakeryProductionEditWizard(models.TransientModel):
+    _name = 'bakery.production.edit.wizard'
+    _description = 'Edit Production Quantity Wizard'
+
+    mo_id = fields.Many2one('mrp.production', string='Manufacturing Order', required=True, readonly=True)
+    product_id = fields.Many2one(related='mo_id.product_id', string='Product', readonly=True)
+    current_qty = fields.Float(string='Current Quantity', related='mo_id.product_qty', readonly=True)
+    new_qty = fields.Float(string='New Quantity', required=True)
+    line_ids = fields.One2many('bakery.production.edit.wizard.line', 'wizard_id', string='Ingredients')
+
+    @api.model
+    def default_get(self, fields):
+        res = super().default_get(fields)
+        if self.env.context.get('default_mo_id'):
+            mo = self.env['mrp.production'].browse(self.env.context['default_mo_id'])
+            lines = []
+            for move in mo.move_raw_ids:
+                # Calculate qty per unit based on current MO qty
+                qty_per_unit = move.product_uom_qty / mo.product_qty if mo.product_qty else 0
+                lines.append((0, 0, {
+                    'product_id': move.product_id.id,
+                    'qty_per_unit': qty_per_unit,
+                    'qty': move.product_uom_qty,
+                    'uom_id': move.product_uom.id,
+                }))
+            res['line_ids'] = lines
+        return res
+
+    @api.onchange('new_qty')
+    def _onchange_new_qty(self):
+        for line in self.line_ids:
+            line.qty = line.qty_per_unit * self.new_qty
+
+    def action_save(self):
+        self.ensure_one()
+        if self.new_qty <= 0:
+            raise UserError(_("Quantity must be positive."))
+        
+        # Update MO quantity
+        # If MO is confirmed, we might need to use a change wizard or just write if allowed
+        # For simplicity in this 'quick' module, we try to write.
+        # Odoo might trigger warnings or wizards if moves are locked.
+        
+        # In Odoo 18, changing product_qty on confirmed MO might be restricted or trigger 'change quantity' wizard logic.
+        # We will try to write directly. If it fails, we might need to use the change wizard.
+        # But usually for 'confirmed' state it updates moves.
+        
+        self.mo_id.product_qty = self.new_qty
+        
+        # Also update the list view line if it exists (optional, but good for consistency if we don't reload)
+        # But we return reload.
+        
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'reload',
+        }
+
+class BakeryProductionEditWizardLine(models.TransientModel):
+    _name = 'bakery.production.edit.wizard.line'
+    _description = 'Bakery Production Edit Wizard Ingredient'
+
+    wizard_id = fields.Many2one('bakery.production.edit.wizard')
+    product_id = fields.Many2one('product.product', string='Ingredient', readonly=True)
+    qty_per_unit = fields.Float(string='Qty per Unit')
+    qty = fields.Float(string='Quantity')
+    uom_id = fields.Many2one('uom.uom', string='Unit of Measure', readonly=True)

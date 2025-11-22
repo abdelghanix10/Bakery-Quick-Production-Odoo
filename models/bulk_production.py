@@ -18,6 +18,20 @@ class BakeryProductionList(models.TransientModel):
         for record in self:
             record.qty_total_str = f"/ {record.qty_total:.2f}"
     
+    def action_edit_qty(self):
+        self.ensure_one()
+        return {
+            'name': _('Edit Quantity'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'bakery.production.edit.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_mo_id': self.mo_id.id,
+                'default_new_qty': self.qty_total,
+            }
+        }
+
     def action_produce_line(self):
         """ Produces the single line (Completes the MO). """
         self.ensure_one()

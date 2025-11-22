@@ -29,6 +29,7 @@ class BakeryProductionList(models.TransientModel):
             'context': {
                 'default_mo_id': self.mo_id.id,
                 'default_new_qty': self.qty_total,
+                'default_bakery_list_id': self.id,
             }
         }
 

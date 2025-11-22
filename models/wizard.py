@@ -150,8 +150,10 @@ class BakeryProductionEditWizard(models.TransientModel):
     mo_id = fields.Many2one('mrp.production', string='Manufacturing Order', required=True, readonly=True)
     product_id = fields.Many2one(related='mo_id.product_id', string='Product', readonly=True)
     current_qty = fields.Float(string='Current Quantity', related='mo_id.product_qty', readonly=True)
+    current_qty = fields.Float(string='Current Quantity', related='mo_id.product_qty', readonly=True)
     new_qty = fields.Float(string='New Quantity', required=True)
     line_ids = fields.One2many('bakery.production.edit.wizard.line', 'wizard_id', string='Ingredients')
+    bakery_list_id = fields.Many2one('bakery.production.list', string='Bakery List Item')
 
     @api.model
     def default_get(self, fields):
@@ -167,6 +169,7 @@ class BakeryProductionEditWizard(models.TransientModel):
                     'qty_per_unit': qty_per_unit,
                     'qty': move.product_uom_qty,
                     'uom_id': move.product_uom.id,
+                    'move_id': move.id,
                 }))
             res['line_ids'] = lines
         return res
@@ -182,15 +185,23 @@ class BakeryProductionEditWizard(models.TransientModel):
             raise UserError(_("Quantity must be positive."))
         
         # Update MO quantity
-        # If MO is confirmed, we might need to use a change wizard or just write if allowed
-        # For simplicity in this 'quick' module, we try to write.
-        # Odoo might trigger warnings or wizards if moves are locked.
-        
-        # In Odoo 18, changing product_qty on confirmed MO might be restricted or trigger 'change quantity' wizard logic.
-        # We will try to write directly. If it fails, we might need to use the change wizard.
-        # But usually for 'confirmed' state it updates moves.
-        
-        self.mo_id.product_qty = self.new_qty
+        # Use write to ensure it triggers necessary updates
+        self.mo_id.write({
+            'product_qty': self.new_qty,
+            'qty_producing': self.new_qty
+        })
+
+        # Update ingredients (moves)
+        for line in self.line_ids:
+            if line.move_id:
+                line.move_id.write({
+                    'product_uom_qty': line.qty,
+                    'quantity': line.qty,
+                })
+
+        # Update the list view record if present
+        if self.bakery_list_id:
+            self.bakery_list_id.write({'qty_producing': self.new_qty})
         
         # Also update the list view line if it exists (optional, but good for consistency if we don't reload)
         # But we return reload.
@@ -209,3 +220,4 @@ class BakeryProductionEditWizardLine(models.TransientModel):
     qty_per_unit = fields.Float(string='Qty per Unit')
     qty = fields.Float(string='Quantity')
     uom_id = fields.Many2one('uom.uom', string='Unit of Measure', readonly=True)
+    move_id = fields.Many2one('stock.move', string='Stock Move')

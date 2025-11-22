@@ -17,6 +17,7 @@
                 <button name="action_edit_qty" string="Edit" type="object" icon="fa-pencil" class="btn-secondary" invisible="state in ('done', 'cancel')"/>
                 <field name="state" widget="badge" decoration-info="state == 'confirmed'" decoration-warning="state == 'progress'"/>
                 <button name="action_produce_line" string="Done" type="object" icon="fa-check" class="btn-success" invisible="state in ('done', 'cancel')"/>
+                <button name="action_cancel" string="Cancel" type="object" icon="fa-times" class="btn-danger" invisible="state in ('done', 'cancel')"/>
             </list>
         </field>
     </record>

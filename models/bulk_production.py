@@ -40,6 +40,15 @@ class BakeryProductionList(models.TransientModel):
             }
         }
 
+    def action_cancel(self):
+        """ Cancels the Manufacturing Order. """
+        self.ensure_one()
+        self.mo_id.action_cancel()
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'reload',
+        }
+
     def action_produce_line(self):
         """ Produces the single line (Completes the MO). """
         self.ensure_one()

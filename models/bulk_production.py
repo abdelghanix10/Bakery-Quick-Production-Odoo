@@ -103,7 +103,7 @@ class BakeryProductionList(models.TransientModel):
                 if mo.product_qty > 0:
                     factor = qty / mo.product_qty
                     move.quantity = move.product_uom_qty * factor
-                    move.picked = True # Odoo 18 might use 'picked' or 'quantity' depending on version/config
+                    move.picked = True  # In Odoo 19, set picked to indicate the move is ready for consumption
 
         # Try to mark done
         try:

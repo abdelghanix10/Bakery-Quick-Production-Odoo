@@ -197,6 +197,7 @@ class BakeryProductionEditWizard(models.TransientModel):
                 line.move_id.write({
                     'product_uom_qty': line.qty,
                     'quantity': line.qty,
+                    'picked': True,  # In Odoo 19, set picked to indicate the move is ready
                 })
 
         # Update the list view record if present

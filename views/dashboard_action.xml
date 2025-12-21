@@ -12,12 +12,15 @@
                 <field name="image_128"/>
                 <templates>
                     <t t-name="card">
-                        <div class="oe_kanban_global_click" style="display: flex; align-items: center;">
-                            <div class="o_kanban_image">
-                                <img t-attf-src="/web/image/product.product/{{record.id.raw_value}}/image_128" alt="Product"/>
+                        <div class="oe_kanban_global_click d-flex flex-column align-items-center justify-content-center text-center" 
+                             style="aspect-ratio: 1/1; margin: 0.5%; padding: 5px;">
+                            <div class="o_kanban_image w-100" style="height: 70%;">
+                                <img t-attf-src="/web/image/product.product/{{record.id.raw_value}}/image_128" 
+                                     alt="Product" 
+                                     style="width: 100%; height: 100%; object-fit: contain; aspect-ratio: 1/1;"/>
                             </div>
-                            <div class="oe_kanban_details" style="margin-left: 10px;">
-                                <strong class="o_kanban_record_title" style="font-size: 1.5em;">
+                            <div class="oe_kanban_details mt-1" style="width: 100%; overflow: hidden;">
+                                <strong class="o_kanban_record_title" style="font-size: 0.9em; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                     <field name="name"/>
                                 </strong>
                             </div>

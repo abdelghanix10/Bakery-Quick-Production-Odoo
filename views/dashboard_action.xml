@@ -12,15 +12,17 @@
                 <field name="image_128"/>
                 <templates>
                     <t t-name="card">
-                        <div class="oe_kanban_global_click d-flex flex-column align-items-center justify-content-center text-center" 
-                             style="aspect-ratio: 1/1; margin: 0.5%; padding: 5px;">
-                            <div class="o_kanban_image w-100" style="height: 70%;">
-                                <img t-attf-src="/web/image/product.product/{{record.id.raw_value}}/image_128" 
-                                     alt="Product" 
-                                     style="width: 100%; height: 100%; object-fit: contain; aspect-ratio: 1/1;"/>
+                        <!-- Card: image left (centered), title right, with gap -->
+                        <div class="oe_kanban_global_click d-flex flex-row align-items-center"
+                             style="padding: 8px; gap: 14px; min-height: 72px; flex: 0 0 calc(100% / 6);">
+                            <div class="d-flex align-items-center justify-content-center"
+                                 style="width: 56px; height: 56px; flex: 0 0 56px;">
+                                <img t-attf-src="/web/image/product.product/{{record.id.raw_value}}/image_128"
+                                     alt="Product"
+                                     style="width: 100%; height: 100%; object-fit: contain; display: block;"/>
                             </div>
-                            <div class="oe_kanban_details mt-1" style="width: 100%; overflow: hidden;">
-                                <strong class="o_kanban_record_title" style="font-size: 0.9em; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            <div style="flex: 1 1 auto; min-width: 0;">
+                                <strong style="display: block; font-size: 1.15rem; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                     <field name="name"/>
                                 </strong>
                             </div>

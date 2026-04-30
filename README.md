@@ -1,5 +1,6 @@
 # Bakery Quick Production
 
+bakery_quick_production
 This module provides a simplified "Kiosk Mode" interface for bakers and other production staff to quickly register production in Odoo. It streamlines the manufacturing process by offering a user-friendly dashboard and a quick production wizard.
 
 ## Features
